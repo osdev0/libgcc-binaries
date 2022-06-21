@@ -1,0 +1,6 @@
+This repository contains several precompiled libgcc.a libraries,
+for different architectural targets.
+
+The libgcc.a files are built using the recipe in .github/workflows/build.yml.
+
+Relevant licenses apply; see COPYING, COPYING3, and COPYING.RUNTIME.

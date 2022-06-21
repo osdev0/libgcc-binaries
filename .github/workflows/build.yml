@@ -1,0 +1,84 @@
+name: Build libgcc
+
+on: [push]
+
+jobs:
+  build:
+    name: Build and upload libgcc
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install git build-essential autoconf automake wget -y
+
+      - name: Fetch make_toolchain.sh
+        run: wget https://gist.github.com/mintsuki/50fca7022e09f241e40809168662493d/raw/c7eb3dd24100da888893dcee6e8d6b577613b577/make_toolchain.sh && chmod +x make_toolchain.sh
+
+      - name: Select GCC and binutils versions
+        run: echo -n "12.1.0" > gcc-version && echo -n "2.38" > binutils-version
+
+
+      - name: Build the toolchain (i386)
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i386 ./make_toolchain.sh
+
+      - name: Copy libgcc.a (i386)
+        run: cp toolchain/lib/gcc/i386-elf/`cat gcc-version`/libgcc.a ./libgcc-i386.a
+
+      - name: Clean toolchain dir
+        run: rm -rf toolchain
+
+
+      - name: Build the toolchain (i686)
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i686 ./make_toolchain.sh
+
+      - name: Copy libgcc.a (i686)
+        run: cp toolchain/lib/gcc/i686-elf/`cat gcc-version`/libgcc.a ./libgcc-i686.a
+
+      - name: Clean toolchain dir
+        run: rm -rf toolchain
+
+
+      - name: Build the toolchain (x86_64)
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=x86_64 ./make_toolchain.sh
+
+      - name: Copy libgcc.a (x86_64)
+        run: cp toolchain/lib/gcc/x86_64-elf/`cat gcc-version`/libgcc.a ./libgcc-x86_64.a
+
+      - name: Copy no-red-zone libgcc.a (x86_64)
+        run: cp toolchain/lib/gcc/x86_64-elf/`cat gcc-version`/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a
+
+      - name: Clean toolchain dir
+        run: rm -rf toolchain
+
+
+      - name: Build the toolchain (aarch64)
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=aarch64 ./make_toolchain.sh
+
+      - name: Copy libgcc.a (aarch64)
+        run: cp toolchain/lib/gcc/aarch64-elf/`cat gcc-version`/libgcc.a ./libgcc-aarch64.a
+
+      - name: Clean toolchain dir
+        run: rm -rf toolchain
+
+
+      - name: Build the toolchain (riscv64)
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=riscv64 ./make_toolchain.sh
+
+      - name: Copy libgcc.a (riscv64)
+        run: cp toolchain/lib/gcc/riscv64-elf/`cat gcc-version`/libgcc.a ./libgcc-riscv64.a
+
+      - name: Clean toolchain dir
+        run: rm -rf toolchain
+
+
+      - name: Push new binaries
+        run: |
+          git config user.name 'mintsuki'
+          git config user.email 'mintsuki@users.noreply.github.com'
+          git fetch --all
+          git add .
+          git commit -m "Upload binaries"
+          git push origin trunk
