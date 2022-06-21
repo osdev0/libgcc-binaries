@@ -22,7 +22,7 @@ jobs:
 
 
       - name: Build the toolchain (i386)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i386 ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i386 GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
 
       - name: Copy libgcc.a (i386)
         run: cp toolchain/lib/gcc/i386-elf/`cat gcc-version`/libgcc.a ./libgcc-i386.a
@@ -32,7 +32,7 @@ jobs:
 
 
       - name: Build the toolchain (i686)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i686 ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i686 GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
 
       - name: Copy libgcc.a (i686)
         run: cp toolchain/lib/gcc/i686-elf/`cat gcc-version`/libgcc.a ./libgcc-i686.a
@@ -42,7 +42,7 @@ jobs:
 
 
       - name: Build the toolchain (x86_64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=x86_64 ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=x86_64 GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
 
       - name: Copy libgcc.a (x86_64)
         run: cp toolchain/lib/gcc/x86_64-elf/`cat gcc-version`/libgcc.a ./libgcc-x86_64.a
@@ -55,7 +55,7 @@ jobs:
 
 
       - name: Build the toolchain (aarch64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=aarch64 ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=aarch64 GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
 
       - name: Copy libgcc.a (aarch64)
         run: cp toolchain/lib/gcc/aarch64-elf/`cat gcc-version`/libgcc.a ./libgcc-aarch64.a
@@ -65,7 +65,7 @@ jobs:
 
 
       - name: Build the toolchain (riscv64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=riscv64 ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=riscv64 GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
 
       - name: Copy libgcc.a (riscv64)
         run: cp toolchain/lib/gcc/riscv64-elf/`cat gcc-version`/libgcc.a ./libgcc-riscv64.a
@@ -80,5 +80,5 @@ jobs:
           git config user.email 'mintsuki@users.noreply.github.com'
           git fetch --all
           git add .
-          git commit -m "Upload binaries"
+          git commit -m "Upload binaries [ci skip]"
           git push origin trunk
