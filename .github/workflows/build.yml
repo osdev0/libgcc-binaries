@@ -18,7 +18,7 @@ jobs:
         run: wget https://gist.github.com/mintsuki/50fca7022e09f241e40809168662493d/raw/c7eb3dd24100da888893dcee6e8d6b577613b577/make_toolchain.sh && chmod +x make_toolchain.sh
 
       - name: Select GCC and binutils versions
-        run: echo -n "12.1.0" > gcc-version && echo -n "2.38" > binutils-version
+        run: echo -n "12.2.0" > gcc-version && echo -n "2.39" > binutils-version
 
 
       - name: Build the toolchain (i386)
