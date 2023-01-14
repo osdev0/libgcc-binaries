@@ -3,4 +3,4 @@ for different architectural targets.
 
 The libgcc.a files are built using the recipe in .github/workflows/build.yml.
 
-Relevant licenses apply; see COPYING, COPYING3, and COPYING.RUNTIME.
+Relevant licenses apply; see COPYING3, and COPYING.RUNTIME.
