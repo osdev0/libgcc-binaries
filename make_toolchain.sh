@@ -17,7 +17,7 @@ fi
 TARGET=$TARGET-elf
 
 if [ -z "$BINUTILSVERSION" ]; then
-    BINUTILSVERSION=2.39
+    BINUTILSVERSION=2.40
 fi
 
 if [ -z "$GCCVERSION" ]; then

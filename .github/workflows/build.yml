@@ -19,7 +19,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Select GCC and binutils versions
-        run: echo -n "12.2.0" > gcc-version && echo -n "2.39" > binutils-version
+        run: echo -n "12.2.0" > gcc-version && echo -n "2.40" > binutils-version
 
 
       - name: Build the toolchain (i386)
