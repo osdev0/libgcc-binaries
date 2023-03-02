@@ -14,8 +14,6 @@ if [ -z "$TARGET" ]; then
     exit 1
 fi
 
-TARGET=$TARGET-elf
-
 if [ -z "$BINUTILSVERSION" ]; then
     BINUTILSVERSION=2.40
 fi
@@ -80,7 +78,7 @@ done
 cd ..
 mkdir build-binutils
 cd build-binutils
-../binutils-$BINUTILSVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS"  --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+../binutils-$BINUTILSVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
 $MAKE
 $MAKE install
 cd ..
@@ -98,7 +96,7 @@ chmod +x contrib/download_prerequisites
 cd ..
 mkdir build-gcc
 cd build-gcc
-../gcc-$GCCVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
+../gcc-$GCCVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
 $MAKE all-gcc
 $MAKE all-target-libgcc
 $MAKE install-gcc

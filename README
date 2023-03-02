@@ -1,4 +1,4 @@
-This repository contains several precompiled libgcc.a libraries,
+This repository contains several precompiled freestanding libgcc.a libraries,
 for different architectural targets.
 
 The libgcc.a files are built using the recipe in .github/workflows/build.yml.
