@@ -56,7 +56,7 @@ jobs:
           git config user.email 'mintsuki@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/mintsuki/libgcc-binaries.git
           while true; do \
-            git fetch --all; \
+            git pull --all; \
             git add .; \
             git commit -m "Upload binaries (${{matrix.target_arch}}) [ci skip]"; \
             if git push origin trunk; then \
