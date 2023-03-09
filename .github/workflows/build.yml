@@ -3,8 +3,12 @@ name: Build libgcc
 on: [push]
 
 jobs:
-  build:
-    name: Build and upload libgcc
+  libgcc:
+    strategy:
+      matrix:
+        target_arch: [i386, i686, x86_64, arm, aarch64, riscv32, riscv64]
+
+    name: Build and upload libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -18,89 +22,46 @@ jobs:
       - name: Git config
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Select GCC and binutils versions
-        run: echo -n "12.2.0" > gcc-version && echo -n "2.40" > binutils-version
+      - name: Extrapolate target triplet
+        run: |
+          set -ex
+          case "${{matrix.target_arch}}" in \
+            arm) \
+              echo "arm-none-eabi" >target-triplet ;; \
+            *) \
+              echo "${{matrix.target_arch}}-elf" >target-triplet ;; \
+          esac
 
+      - name: Build the toolchain
+        run: CFLAGS_FOR_TARGET="-O2 -pipe -fpic -Wa,--noexecstack" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
 
-      - name: Build the toolchain (i386)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i386-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
+      - name: Copy libgcc.a
+        run: cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/libgcc.a ./libgcc-${{matrix.target_arch}}.a
 
-      - name: Copy libgcc.a (i386)
-        run: cp toolchain/lib/gcc/i386-elf/`cat gcc-version`/libgcc.a ./libgcc-i386.a
+      - name: Copy extra libgcc.a's
+        run: |
+          set -ex
+          case "${{matrix.target_arch}}" in \
+            x86_64) \
+              cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
+          esac
 
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (i686)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=i686-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (i686)
-        run: cp toolchain/lib/gcc/i686-elf/`cat gcc-version`/libgcc.a ./libgcc-i686.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (x86_64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=x86_64-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (x86_64)
-        run: cp toolchain/lib/gcc/x86_64-elf/`cat gcc-version`/libgcc.a ./libgcc-x86_64.a
-
-      - name: Copy no-red-zone libgcc.a (x86_64)
-        run: cp toolchain/lib/gcc/x86_64-elf/`cat gcc-version`/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (arm)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=arm-none-eabi GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (arm)
-        run: cp toolchain/lib/gcc/arm-none-eabi/`cat gcc-version`/libgcc.a ./libgcc-arm.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (aarch64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=aarch64-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (aarch64)
-        run: cp toolchain/lib/gcc/aarch64-elf/`cat gcc-version`/libgcc.a ./libgcc-aarch64.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (riscv32)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=riscv32-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (riscv32)
-        run: cp toolchain/lib/gcc/riscv32-elf/`cat gcc-version`/libgcc.a ./libgcc-riscv32.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
-
-      - name: Build the toolchain (riscv64)
-        run: CFLAGS_FOR_TARGET="-Os -pipe" TARGET=riscv64-elf GCCVERSION="`cat gcc-version`" BINUTILSVERSION="`cat binutils-version`" ./make_toolchain.sh
-
-      - name: Copy libgcc.a (riscv64)
-        run: cp toolchain/lib/gcc/riscv64-elf/`cat gcc-version`/libgcc.a ./libgcc-riscv64.a
-
-      - name: Clean toolchain dir
-        run: rm -rf toolchain
-
+      - name: Remove target-triplet
+        run: rm target-triplet
 
       - name: Push new binaries
         run: |
+          set -ex
           git config user.name 'mintsuki'
           git config user.email 'mintsuki@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/mintsuki/libgcc-binaries.git
-          git fetch --all
-          git add .
-          git commit -m "Upload binaries [ci skip]"
-          git push origin trunk
+          while true; do \
+            git fetch --all; \
+            git add .; \
+            git commit -m "Upload binaries (${{matrix.target_arch}}) [ci skip]"; \
+            if git push origin trunk; then \
+              break; \
+            else \
+              git reset HEAD~1; \
+            fi; \
+          done
