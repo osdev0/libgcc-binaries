@@ -33,7 +33,7 @@ jobs:
           esac
 
       - name: Build the toolchain
-        run: CFLAGS_FOR_TARGET="-O2 -pipe -fpic -Wa,--noexecstack" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
+        run: CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
 
       - name: Copy libgcc.a
         run: cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/libgcc.a ./libgcc-${{matrix.target_arch}}.a
