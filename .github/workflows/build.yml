@@ -6,7 +6,7 @@ jobs:
   libgcc:
     strategy:
       matrix:
-        target_arch: [i386, i686, x86_64, arm, aarch64, riscv32, riscv64]
+        target_arch: [i386, i686, x86_64, arm, aarch64, riscv64]
 
     name: Build and upload libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
@@ -33,7 +33,12 @@ jobs:
           esac
 
       - name: Build the toolchain
-        run: CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
+        run: |
+          CFLAGS_FOR_TARGET=""; \
+          if [ "${{matrix.target_arch}}" = "riscv64" ]; then \
+            CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64"; \
+          fi; \
+          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
 
       - name: Copy libgcc.a
         run: cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/libgcc.a ./libgcc-${{matrix.target_arch}}.a
