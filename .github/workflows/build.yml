@@ -6,7 +6,7 @@ jobs:
   libgcc:
     strategy:
       matrix:
-        target_arch: [i386, i686, x86_64, arm, aarch64, riscv64]
+        target_arch: [i386, i686, x86_64, arm, aarch64, riscv64, riscv64-softfloat]
 
     name: Build and upload libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
@@ -28,6 +28,8 @@ jobs:
           case "${{matrix.target_arch}}" in \
             arm) \
               echo "arm-none-eabi" >target-triplet ;; \
+            riscv64-softfloat) \
+              echo "riscv64-elf" >target-triplet ;; \
             *) \
               echo "${{matrix.target_arch}}-elf" >target-triplet ;; \
           esac
@@ -35,7 +37,7 @@ jobs:
       - name: Build the toolchain
         run: |
           CFLAGS_FOR_TARGET=""; \
-          if [ "${{matrix.target_arch}}" = "riscv64" ]; then \
+          if [ "${{matrix.target_arch}}" = "riscv64-softfloat" ]; then \
             CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64"; \
           fi; \
           CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
