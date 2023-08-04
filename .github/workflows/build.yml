@@ -40,6 +40,10 @@ jobs:
           if [ "${{matrix.target_arch}}" = "riscv64-softfloat" ]; then \
             CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64"; \
           fi; \
+          case "${{matrix.target_arch}}" in \
+            riscv64*) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
+          esac; \
           CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
 
       - name: Copy libgcc.a
