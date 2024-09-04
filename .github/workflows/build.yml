@@ -6,7 +6,7 @@ jobs:
   libgcc:
     strategy:
       matrix:
-        target_arch: [i386, i686, x86_64, arm, aarch64, riscv64, riscv64-softfloat]
+        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat]
 
     name: Build and upload libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
@@ -28,6 +28,8 @@ jobs:
           case "${{matrix.target_arch}}" in \
             arm) \
               echo "arm-none-eabi" >target-triplet ;; \
+            loongarch64-softfloat) \
+              echo "loongarch64-elf" >target-triplet ;; \
             riscv64-softfloat) \
               echo "riscv64-elf" >target-triplet ;; \
             *) \
@@ -37,9 +39,12 @@ jobs:
       - name: Build the toolchain
         run: |
           CFLAGS_FOR_TARGET=""; \
-          if [ "${{matrix.target_arch}}" = "riscv64-softfloat" ]; then \
-            CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64"; \
-          fi; \
+          case "${{matrix.target_arch}}" in \
+            loongarch64-softfloat) \
+              CFLAGS_FOR_TARGET="-mabi=lp64s";; \
+            riscv64-softfloat) \
+              CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64";; \
+          esac; \
           case "${{matrix.target_arch}}" in \
             riscv64*) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
