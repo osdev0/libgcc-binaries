@@ -1,6 +1,9 @@
 name: Build libgcc
 
-on: [push]
+on:
+  push:
+    branches:
+      - 'trunk'
 
 jobs:
   libgcc:
