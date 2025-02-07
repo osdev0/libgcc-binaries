@@ -52,17 +52,17 @@ jobs:
             riscv64*) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
           esac; \
-          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" GCCVERSION="$(cat gcc-version)" BINUTILSVERSION="$(cat binutils-version)" ./make_toolchain.sh
+          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ./make_toolchain.sh
 
       - name: Copy libgcc.a
-        run: cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/libgcc.a ./libgcc-${{matrix.target_arch}}.a
+        run: cp toolchain/lib/gcc/*/*/libgcc.a ./libgcc-${{matrix.target_arch}}.a
 
       - name: Copy extra libgcc.a's
         run: |
           set -ex
           case "${{matrix.target_arch}}" in \
             x86_64) \
-              cp toolchain/lib/gcc/$(cat target-triplet)/$(cat gcc-version)/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
+              cp toolchain/lib/gcc/*/*/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
           esac
 
       - name: Remove target-triplet
