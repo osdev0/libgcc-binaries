@@ -1,6 +1,6 @@
 This repository contains several precompiled freestanding libgcc.a libraries,
 for different architectural targets.
 
-The libgcc.a files are built using the recipe in .github/workflows/build.yml.
+The libgcc.a files are built using the make_toolchain.sh and do.sh scripts.
 
 Relevant licenses apply; see COPYING3, and COPYING.RUNTIME.
