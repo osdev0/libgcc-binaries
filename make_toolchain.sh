@@ -19,7 +19,7 @@ if [ -z "$BINUTILSVERSION" ]; then
 fi
 
 if [ -z "$GCCVERSION" ]; then
-    GCCVERSION=14.2.0
+    GCCVERSION=15.1.0
 fi
 
 if command -v gmake; then
