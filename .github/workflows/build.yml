@@ -1,0 +1,86 @@
+name: Build libgcc
+
+on:
+  push:
+    branches:
+      - 'trunk'
+
+jobs:
+  libgcc:
+    strategy:
+      matrix:
+        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k]
+
+    name: Build and upload libgcc for ${{matrix.target_arch}}
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+      - name: Install dependencies
+        run: pacman --noconfirm -Syu && pacman --needed --noconfirm -S base-devel git autoconf automake wget
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Git config
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Extrapolate target triplet
+        run: |
+          set -ex
+          case "${{matrix.target_arch}}" in \
+            arm) \
+              echo "arm-none-eabi" >target-triplet ;; \
+            loongarch64-softfloat) \
+              echo "loongarch64-elf" >target-triplet ;; \
+            riscv64-softfloat) \
+              echo "riscv64-elf" >target-triplet ;; \
+            *) \
+              echo "${{matrix.target_arch}}-elf" >target-triplet ;; \
+          esac
+
+      - name: Build the toolchain
+        run: |
+          CFLAGS_FOR_TARGET=""; \
+          case "${{matrix.target_arch}}" in \
+            loongarch64-softfloat) \
+              CFLAGS_FOR_TARGET="-mabi=lp64s";; \
+            riscv64-softfloat) \
+              CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64";; \
+          esac; \
+          case "${{matrix.target_arch}}" in \
+            riscv64*) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
+          esac; \
+          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ./make_toolchain.sh
+
+      - name: Copy libgcc.a
+        run: cp toolchain/lib/gcc/*/*/libgcc.a ./libgcc-${{matrix.target_arch}}.a
+
+      - name: Copy extra libgcc.a's
+        run: |
+          set -ex
+          case "${{matrix.target_arch}}" in \
+            x86_64) \
+              cp toolchain/lib/gcc/*/*/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
+          esac
+
+      - name: Remove target-triplet
+        run: rm target-triplet
+
+      - name: Push new binaries
+        run: |
+          set -ex
+          git config user.name 'mintsuki'
+          git config user.email 'mintsuki@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/osdev0/libgcc-binaries.git
+          while true; do \
+            git pull --all; \
+            git add .; \
+            git commit -m "Upload binaries (${{matrix.target_arch}}) [ci skip]"; \
+            if git push origin trunk; then \
+              break; \
+            else \
+              git reset HEAD~1; \
+            fi; \
+          done
