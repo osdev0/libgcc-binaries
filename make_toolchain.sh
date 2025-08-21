@@ -94,7 +94,7 @@ done
 sed 's|http://gcc.gnu|https://gcc.gnu|g' < contrib/download_prerequisites > dp.sed
 mv dp.sed contrib/download_prerequisites
 chmod +x contrib/download_prerequisites
-./contrib/download_prerequisites --no-verify
+./contrib/download_prerequisites
 cd ..
 mkdir build-gcc
 cd build-gcc
