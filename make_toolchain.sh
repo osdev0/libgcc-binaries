@@ -15,11 +15,11 @@ if [ -z "$TARGET" ]; then
 fi
 
 if [ -z "$BINUTILSVERSION" ]; then
-    BINUTILSVERSION=2.44
+    BINUTILSVERSION=2.45
 fi
 
 if [ -z "$GCCVERSION" ]; then
-    GCCVERSION=15.1.0
+    GCCVERSION=15.2.0
 fi
 
 if command -v gmake; then
@@ -55,19 +55,21 @@ export MAKEFLAGS="-j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || psri
 
 export PATH="$PREFIX/bin:$PATH"
 
-if [ ! -f binutils-$BINUTILSVERSION.tar.gz ]; then
-    curl -o binutils-$BINUTILSVERSION.tar.gz https://ftp.gnu.org/gnu/binutils/binutils-$BINUTILSVERSION.tar.gz
+if [ ! -f binutils-$BINUTILSVERSION.tar.xz ]; then
+    curl -Lo binutils-$BINUTILSVERSION.tar.xz https://ftpmirror.gnu.org/gnu/binutils/binutils-$BINUTILSVERSION.tar.xz
+    b2sum binutils-$BINUTILSVERSION.tar.xz | grep -q 1ce72346b1f531c89feb86b407e2c649151b506ffbd1a02d413411d36f7ede98fa9a1adf75dd941c01df5fe7e6bf151828b269eeb7c278315ca8004bff22eb7f
 fi
-if [ ! -f gcc-$GCCVERSION.tar.gz ]; then
-    curl -o gcc-$GCCVERSION.tar.gz https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.gz
+if [ ! -f gcc-$GCCVERSION.tar.xz ]; then
+    curl -Lo gcc-$GCCVERSION.tar.xz https://ftpmirror.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.xz
+    b2sum gcc-$GCCVERSION.tar.xz | grep -q e270320978ca690e6e8f5ef06414dc13caf561f16403a3783c76fbf3dcee57e755a2d5bba922bf7fcae0bb6120443755d819b003791ae823d54589dd799804de
 fi
 
 rm -rf build
 mkdir build
 cd build
 
-$TAR -zxf ../binutils-$BINUTILSVERSION.tar.gz
-$TAR -zxf ../gcc-$GCCVERSION.tar.gz
+$TAR -xf ../binutils-$BINUTILSVERSION.tar.xz
+$TAR -xf ../gcc-$GCCVERSION.tar.xz
 
 cd binutils-$BINUTILSVERSION
 # Apply patches, if any

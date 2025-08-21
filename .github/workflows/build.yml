@@ -20,7 +20,7 @@ jobs:
         run: pacman --noconfirm -Syu && pacman --needed --noconfirm -S base-devel git autoconf automake wget
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Git config
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -44,9 +44,9 @@ jobs:
           CFLAGS_FOR_TARGET=""; \
           case "${{matrix.target_arch}}" in \
             loongarch64-softfloat) \
-              CFLAGS_FOR_TARGET="-mabi=lp64s";; \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mabi=lp64s -mfpu=none -msimd=none";; \
             riscv64-softfloat) \
-              CFLAGS_FOR_TARGET="-march=rv64imac_zicsr_zifencei -mabi=lp64";; \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -march=rv64imac_zicsr_zifencei -mabi=lp64";; \
           esac; \
           case "${{matrix.target_arch}}" in \
             riscv64*) \
