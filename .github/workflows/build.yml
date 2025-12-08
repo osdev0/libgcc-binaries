@@ -72,9 +72,11 @@ jobs:
         run: echo "TAG_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: Tag new release
+        if: github.ref == 'refs/heads/trunk' && !env.ACT
         run: git tag $TAG_DATE && git push --tags
 
       - name: Create new release
+        if: github.ref == 'refs/heads/trunk' && !env.ACT
         uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ env.TAG_DATE }}
