@@ -9,7 +9,7 @@ jobs:
   libgcc:
     strategy:
       matrix:
-        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k]
+        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k, ppc64]
 
     name: Build and upload libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
@@ -35,6 +35,8 @@ jobs:
               echo "loongarch64-elf" >target-triplet ;; \
             riscv64-softfloat) \
               echo "riscv64-elf" >target-triplet ;; \
+            ppc64) \
+              echo "powerpc64-linux-gnu" >target-triplet ;; \
             *) \
               echo "${{matrix.target_arch}}-elf" >target-triplet ;; \
           esac
@@ -47,12 +49,18 @@ jobs:
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mabi=lp64s -mfpu=none -msimd=none";; \
             riscv64-softfloat) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -march=rv64imac_zicsr_zifencei -mabi=lp64";; \
+            ppc64) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -m64 -mno-altivec -mno-vsx";; \
           esac; \
           case "${{matrix.target_arch}}" in \
             riscv64*) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
           esac; \
-          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ./make_toolchain.sh
+          case "${{matrix.target_arch}}" in \
+            ppc64) \
+              ADDITIONAL_GCC_CONFIGURE_FLAGS="--disable-threads --disable-shared";; \
+          esac; \
+          CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ADDITIONAL_GCC_CONFIGURE_FLAGS="$ADDITIONAL_GCC_CONFIGURE_FLAGS" ./make_toolchain.sh
 
       - name: Copy libgcc.a
         run: cp toolchain/lib/gcc/*/*/libgcc.a ./libgcc-${{matrix.target_arch}}.a
@@ -72,9 +80,11 @@ jobs:
         run: echo "TAG_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: Tag new release
+        if: github.ref == 'refs/heads/trunk' && !env.ACT
         run: git tag $TAG_DATE && git push --tags
 
       - name: Create new release
+        if: github.ref == 'refs/heads/trunk' && !env.ACT
         uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ env.TAG_DATE }}

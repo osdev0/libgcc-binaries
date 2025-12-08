@@ -98,7 +98,7 @@ chmod +x contrib/download_prerequisites
 cd ..
 mkdir build-gcc
 cd build-gcc
-../gcc-$GCCVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
+../gcc-$GCCVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers $ADDITIONAL_GCC_CONFIGURE_FLAGS
 $MAKE all-gcc
 $MAKE all-target-libgcc
 $MAKE install-gcc
