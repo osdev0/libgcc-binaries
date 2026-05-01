@@ -15,11 +15,11 @@ if [ -z "$TARGET" ]; then
 fi
 
 if [ -z "$BINUTILSVERSION" ]; then
-    BINUTILSVERSION=2.45
+    BINUTILSVERSION=2.46.0
 fi
 
 if [ -z "$GCCVERSION" ]; then
-    GCCVERSION=15.2.0
+    GCCVERSION=16.1.0
 fi
 
 if command -v gmake; then
@@ -49,19 +49,19 @@ if [ "$(uname)" = "OpenBSD" ]; then
 fi
 
 mkdir -p toolchain && cd toolchain
-PREFIX="$(pwd -P)"
+PREFIX="$(pwd -P)/output"
 
 export MAKEFLAGS="-j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || psrinfo -tc 2>/dev/null || echo 1)"
 
 export PATH="$PREFIX/bin:$PATH"
 
 if [ ! -f binutils-$BINUTILSVERSION.tar.xz ]; then
-    curl -Lo binutils-$BINUTILSVERSION.tar.xz https://ftpmirror.gnu.org/gnu/binutils/binutils-$BINUTILSVERSION.tar.xz
-    b2sum binutils-$BINUTILSVERSION.tar.xz | grep -q 1ce72346b1f531c89feb86b407e2c649151b506ffbd1a02d413411d36f7ede98fa9a1adf75dd941c01df5fe7e6bf151828b269eeb7c278315ca8004bff22eb7f
+    curl -Lo binutils-$BINUTILSVERSION.tar.xz https://ftp.gnu.org/gnu/binutils/binutils-$BINUTILSVERSION.tar.xz
+    b2sum binutils-$BINUTILSVERSION.tar.xz | grep -q 9f4fd8897d237eb5003bdf439537dfc5f8c681e9ff939fb06bb8235ed298031ea4cc91611edb640ffc432199d5791289d003fe0d07acce80327dc40595a5eb9e
 fi
 if [ ! -f gcc-$GCCVERSION.tar.xz ]; then
-    curl -Lo gcc-$GCCVERSION.tar.xz https://ftpmirror.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.xz
-    b2sum gcc-$GCCVERSION.tar.xz | grep -q e270320978ca690e6e8f5ef06414dc13caf561f16403a3783c76fbf3dcee57e755a2d5bba922bf7fcae0bb6120443755d819b003791ae823d54589dd799804de
+    curl -Lo gcc-$GCCVERSION.tar.xz https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.xz
+    b2sum gcc-$GCCVERSION.tar.xz | grep -q ceb07866b6b17eb4c69a6b51241b275bc5ec506603a7c1a4c1e2585091a09fc647be945beeff76700bffd9018bda81b072d84f909fd7998baa0cfe3f0eb550b4
 fi
 
 rm -rf build
@@ -80,7 +80,14 @@ done
 cd ..
 mkdir build-binutils
 cd build-binutils
-../binutils-$BINUTILSVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+../binutils-$BINUTILSVERSION/configure \
+    CFLAGS="$CFLAGS" \
+    CXXFLAGS="$CFLAGS" \
+    --target=$TARGET \
+    --prefix="$PREFIX" \
+    --with-sysroot \
+    --disable-nls \
+    --disable-werror
 $MAKE
 $MAKE install
 cd ..
@@ -98,7 +105,15 @@ chmod +x contrib/download_prerequisites
 cd ..
 mkdir build-gcc
 cd build-gcc
-../gcc-$GCCVERSION/configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers $ADDITIONAL_GCC_CONFIGURE_FLAGS
+../gcc-$GCCVERSION/configure \
+    CFLAGS="$CFLAGS" \
+    CXXFLAGS="$CFLAGS" \
+    --target=$TARGET \
+    --prefix="$PREFIX" \
+    --disable-nls \
+    --enable-languages=c,c++ \
+    --without-headers \
+    $ADDITIONAL_GCC_CONFIGURE_FLAGS
 $MAKE all-gcc
 $MAKE all-target-libgcc
 $MAKE install-gcc

@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - 'trunk'
+  workflow_dispatch:
 
 jobs:
-  libgcc:
+  build:
     strategy:
       matrix:
         target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k, ppc64]
@@ -17,7 +18,7 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: pacman --noconfirm -Syu && pacman --needed --noconfirm -S base-devel git autoconf automake wget
+        run: pacman --noconfirm -Syu && pacman --needed --noconfirm -S base-devel git autoconf automake wget bison flex texinfo file
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -27,7 +28,6 @@ jobs:
 
       - name: Extrapolate target triplet
         run: |
-          set -ex
           case "${{matrix.target_arch}}" in \
             arm) \
               echo "arm-none-eabi" >target-triplet ;; \
@@ -63,21 +63,23 @@ jobs:
           CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ADDITIONAL_GCC_CONFIGURE_FLAGS="$ADDITIONAL_GCC_CONFIGURE_FLAGS" ./make_toolchain.sh
 
       - name: Copy libgcc.a
-        run: cp toolchain/lib/gcc/*/*/libgcc.a ./libgcc-${{matrix.target_arch}}.a
+        run: cp toolchain/output/lib/gcc/*/*/libgcc.a ./libgcc-${{matrix.target_arch}}.a
 
       - name: Copy extra libgcc.a's
         run: |
-          set -ex
           case "${{matrix.target_arch}}" in \
             x86_64) \
-              cp toolchain/lib/gcc/*/*/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
+              cp toolchain/output/lib/gcc/*/*/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
           esac
 
       - name: Remove target-triplet
         run: rm target-triplet
 
-      - name: Set TAG_DATE variable
-        run: echo "TAG_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      - name: Set up env variables
+        run: |
+          echo "TAG_DATE=$(date -u +'%Y%m%dT%H%M%SZ')" >> $GITHUB_ENV
+          grep -o 'GCCVERSION=.*$' make_toolchain.sh >> $GITHUB_ENV
+          grep -o 'BINUTILSVERSION=.*$' make_toolchain.sh >> $GITHUB_ENV
 
       - name: Tag new release
         if: github.ref == 'refs/heads/trunk' && !env.ACT
@@ -89,6 +91,10 @@ jobs:
         with:
           name: Release ${{ env.TAG_DATE }}
           tag_name: ${{ env.TAG_DATE }}
+          body: |
+            This build is based on:
+              - GNU Binutils ${{env.BINUTILSVERSION}}
+              - GCC ${{env.GCCVERSION}}
           files: |
             COPYING*
             *.a
