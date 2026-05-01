@@ -7,12 +7,23 @@ on:
   workflow_dispatch:
 
 jobs:
+  prepare:
+    name: Compute release tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag_date: ${{ steps.set.outputs.tag_date }}
+    steps:
+      - name: Compute timestamp
+        id: set
+        run: echo "tag_date=$(date -u +'%Y%m%dT%H%M%SZ')" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     strategy:
       matrix:
         target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k, ppc64]
 
-    name: Build and upload libgcc for ${{matrix.target_arch}}
+    name: Build libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -72,31 +83,51 @@ jobs:
               cp toolchain/output/lib/gcc/*/*/no-red-zone/libgcc.a ./libgcc-x86_64-no-red-zone.a ;; \
           esac
 
-      - name: Remove target-triplet
-        run: rm target-triplet
+      - name: Upload libgcc artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libgcc-${{ matrix.target_arch }}
+          path: libgcc-*.a
+          if-no-files-found: error
 
-      - name: Set up env variables
+  release:
+    needs: [prepare, build]
+    name: Publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download all libgcc artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: libgcc-*
+          merge-multiple: true
+
+      - name: Read toolchain versions
         run: |
-          echo "TAG_DATE=$(date -u +'%Y%m%dT%H%M%SZ')" >> $GITHUB_ENV
           grep -o 'GCCVERSION=.*$' make_toolchain.sh >> $GITHUB_ENV
           grep -o 'BINUTILSVERSION=.*$' make_toolchain.sh >> $GITHUB_ENV
 
       - name: Tag new release
-        if: github.ref == 'refs/heads/trunk' && !env.ACT
-        run: git tag $TAG_DATE && git push --tags
+        run: |
+          git tag ${{ needs.prepare.outputs.tag_date }}
+          git push --tags
 
       - name: Create new release
-        if: github.ref == 'refs/heads/trunk' && !env.ACT
         uses: softprops/action-gh-release@v3
         with:
-          name: Release ${{ env.TAG_DATE }}
-          tag_name: ${{ env.TAG_DATE }}
+          name: Release ${{ needs.prepare.outputs.tag_date }}
+          tag_name: ${{ needs.prepare.outputs.tag_date }}
           body: |
             This build is based on:
-              - GNU Binutils ${{env.BINUTILSVERSION}}
-              - GCC ${{env.GCCVERSION}}
+              - GNU Binutils ${{ env.BINUTILSVERSION }}
+              - GCC ${{ env.GCCVERSION }}
           files: |
             COPYING*
-            *.a
+            artifacts/*.a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
