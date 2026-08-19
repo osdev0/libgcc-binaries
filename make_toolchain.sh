@@ -15,11 +15,11 @@ if [ -z "$TARGET" ]; then
 fi
 
 if [ -z "$BINUTILSVERSION" ]; then
-    BINUTILSVERSION=2.46.0
+    BINUTILSVERSION=2.47
 fi
 
 if [ -z "$GCCVERSION" ]; then
-    GCCVERSION=16.1.0
+    GCCVERSION=16.2.0
 fi
 
 if command -v gmake; then
@@ -57,11 +57,11 @@ export PATH="$PREFIX/bin:$PATH"
 
 if [ ! -f binutils-$BINUTILSVERSION.tar.xz ]; then
     curl -Lo binutils-$BINUTILSVERSION.tar.xz https://ftp.gnu.org/gnu/binutils/binutils-$BINUTILSVERSION.tar.xz
-    b2sum binutils-$BINUTILSVERSION.tar.xz | grep -q 9f4fd8897d237eb5003bdf439537dfc5f8c681e9ff939fb06bb8235ed298031ea4cc91611edb640ffc432199d5791289d003fe0d07acce80327dc40595a5eb9e
+    b2sum binutils-$BINUTILSVERSION.tar.xz | grep -q 329cae8792c500c71d8cce03aab127e8d77f1d409f74872082e64df5163e5c730fe585f8f9c21905cb6227cae18e6675ae4caed653223a26b5d9d4fdb90910ea
 fi
 if [ ! -f gcc-$GCCVERSION.tar.xz ]; then
     curl -Lo gcc-$GCCVERSION.tar.xz https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.xz
-    b2sum gcc-$GCCVERSION.tar.xz | grep -q ceb07866b6b17eb4c69a6b51241b275bc5ec506603a7c1a4c1e2585091a09fc647be945beeff76700bffd9018bda81b072d84f909fd7998baa0cfe3f0eb550b4
+    b2sum gcc-$GCCVERSION.tar.xz | grep -q ab3ffe16e042da767f3f1eac170da518d6d7de3b0f92e068f79e3bf25fdc0bdf56eea0cd586bd4b9b6e9baebadd110c2ebd77b75c99c45853814f4bea5a98ef0
 fi
 
 rm -rf build
