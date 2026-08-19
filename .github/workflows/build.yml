@@ -32,7 +32,7 @@ jobs:
         run: pacman --noconfirm -Syu && pacman --needed --noconfirm -S base-devel git autoconf automake wget bison flex texinfo file
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Git config
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -98,7 +98,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download all libgcc artifacts
         uses: actions/download-artifact@v8
