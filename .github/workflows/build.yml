@@ -64,6 +64,10 @@ jobs:
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -m64 -mno-altivec -mno-vsx";; \
           esac; \
           case "${{matrix.target_arch}}" in \
+            aarch64*) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mcpu=generic -march=armv8-a";; \
+            loongarch64*) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -march=loongarch64 -mno-relax";; \
             riscv64*) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
           esac; \
