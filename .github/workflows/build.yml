@@ -21,7 +21,7 @@ jobs:
     needs: prepare
     strategy:
       matrix:
-        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k, ppc64]
+        target_arch: [i386, i686, x86_64, arm, aarch64, loongarch64, loongarch64-softfloat, riscv64, riscv64-softfloat, m68k, ppc64, mips64]
 
     name: Build libgcc for ${{matrix.target_arch}}
     runs-on: ubuntu-latest
@@ -48,6 +48,8 @@ jobs:
               echo "riscv64-elf" >target-triplet ;; \
             ppc64) \
               echo "powerpc64-linux-gnu" >target-triplet ;; \
+            mips64) \
+              echo "mips64-linux-gnuabi64" >target-triplet ;; \
             *) \
               echo "${{matrix.target_arch}}-elf" >target-triplet ;; \
           esac
@@ -70,10 +72,14 @@ jobs:
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -march=loongarch64 -mno-relax";; \
             riscv64*) \
               CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -mno-relax";; \
+            mips64) \
+              CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET -march=mips64r2 -mabi=64 -mhard-float -EB";; \
           esac; \
           case "${{matrix.target_arch}}" in \
             ppc64) \
               ADDITIONAL_GCC_CONFIGURE_FLAGS="--disable-threads --disable-shared";; \
+            mips64) \
+              ADDITIONAL_GCC_CONFIGURE_FLAGS="--with-arch=mips64r2 --with-abi=64 --disable-multilib --disable-threads --disable-shared";; \
           esac; \
           CFLAGS_FOR_TARGET="-O2 -pipe -fPIC -Wa,--noexecstack $CFLAGS_FOR_TARGET" TARGET="$(cat target-triplet)" ADDITIONAL_GCC_CONFIGURE_FLAGS="$ADDITIONAL_GCC_CONFIGURE_FLAGS" ./make_toolchain.sh
 
